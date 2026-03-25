@@ -25,6 +25,23 @@ FreshToGo Admin — a React admin dashboard built with Vite + TypeScript. Curren
 
 Strict mode is on with additional lint flags: `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `noUncheckedSideEffectImports`. Three tsconfig files exist: root (references only), `tsconfig.app.json` (app code), `tsconfig.node.json` (build tooling).
 
+## Testing
+
+- **Vitest** with jsdom environment, **Testing Library** (react, jest-dom, user-event)
+- `npm run test` — start Vitest in watch mode
+- `npm run test:run` — single run (CI-friendly)
+- Test files live next to source: `Component.test.tsx` beside `Component.tsx`
+- Shared test helper at `src/test/helpers.tsx` — use `renderWithProviders()` to wrap components in `MemoryRouter` + `AuthContext.Provider`
+- Setup file at `src/test/setup.ts` (jest-dom matchers)
+- Write unit tests for every new feature unless there is a specific blocker (e.g., heavy native API dependency with no jsdom support). If skipping tests, leave a comment explaining why.
+- Mock external dependencies (`sonner`, `recharts`, `axios`) rather than hitting real APIs
+- Use `vi.useFakeTimers()` with `fireEvent` (not `userEvent`) for debounce/timer tests
+- Mock `HTMLDialogElement.prototype.showModal/close` — jsdom doesn't implement `<dialog>`
+
+## Workflow
+
+- Before committing, run `/simplify` to review changed code for reuse, quality, and efficiency.
+
 ## Deployment
 
 Hosted on **Firebase Hosting** (site: `freshtogo-admin`, project: `freshtogo-e52a1`). The hosting config serves `dist/` with SPA rewrites (all routes → `index.html`). Deploy with `firebase deploy --only hosting`.
