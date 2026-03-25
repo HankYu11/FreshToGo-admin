@@ -13,6 +13,8 @@ export default function MerchantCreate() {
     email: '',
     phone: '',
     address: '',
+    latitude: '',
+    longitude: '',
   });
 
   const handleChange = (field: string, value: string) => {
@@ -23,7 +25,12 @@ export default function MerchantCreate() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post<Merchant>('/api/admin/merchants', form);
+      const payload = {
+        ...form,
+        latitude: parseFloat(form.latitude),
+        longitude: parseFloat(form.longitude),
+      };
+      const { data } = await api.post<Merchant>('/api/admin/merchants', payload);
       toast.success('Merchant created');
       navigate(`/merchants/${data.id}`);
     } catch {
@@ -56,6 +63,30 @@ export default function MerchantCreate() {
           Address
           <input value={form.address} onChange={(e) => handleChange('address', e.target.value)} />
         </label>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+            Latitude
+            <input
+              type="number"
+              step="any"
+              required
+              value={form.latitude}
+              onChange={(e) => handleChange('latitude', e.target.value)}
+              placeholder="e.g. 43.6532"
+            />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+            Longitude
+            <input
+              type="number"
+              step="any"
+              required
+              value={form.longitude}
+              onChange={(e) => handleChange('longitude', e.target.value)}
+              placeholder="e.g. -79.3832"
+            />
+          </label>
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Creating...' : 'Create'}

@@ -20,7 +20,7 @@ export default function MerchantDetail() {
     { errorMessage: 'Failed to load merchant' },
   );
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', latitude: '', longitude: '' });
   const [saving, setSaving] = useState(false);
 
   const deleteAction = useConfirmAction(async () => {
@@ -33,7 +33,14 @@ export default function MerchantDetail() {
   const synced = useRef(false);
   useEffect(() => {
     if (merchant && !synced.current) {
-      setForm({ name: merchant.name, email: merchant.email, phone: merchant.phone, address: merchant.address });
+      setForm({
+        name: merchant.name,
+        email: merchant.email,
+        phone: merchant.phone,
+        address: merchant.address,
+        latitude: String(merchant.latitude),
+        longitude: String(merchant.longitude),
+      });
       synced.current = true;
     }
   }, [merchant]);
@@ -42,7 +49,12 @@ export default function MerchantDetail() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await api.patch<Merchant>(`/api/admin/merchants/${id}`, form);
+      const payload = {
+        ...form,
+        latitude: parseFloat(form.latitude),
+        longitude: parseFloat(form.longitude),
+      };
+      const { data } = await api.patch<Merchant>(`/api/admin/merchants/${id}`, payload);
       setMerchant(data);
       setEditing(false);
       toast.success('Merchant updated');
@@ -110,6 +122,28 @@ export default function MerchantDetail() {
               Address
               <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
             </label>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <label style={{ flex: 1 }}>
+                Latitude
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  value={form.latitude}
+                  onChange={(e) => setForm((p) => ({ ...p, latitude: e.target.value }))}
+                />
+              </label>
+              <label style={{ flex: 1 }}>
+                Longitude
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  value={form.longitude}
+                  onChange={(e) => setForm((p) => ({ ...p, longitude: e.target.value }))}
+                />
+              </label>
+            </div>
             <div className={styles.formActions}>
               <button type="submit" className="btn-primary" disabled={saving}>
                 {saving ? 'Saving...' : 'Save'}
@@ -125,6 +159,8 @@ export default function MerchantDetail() {
           <DetailCard.Field label="Email">{merchant.email}</DetailCard.Field>
           <DetailCard.Field label="Phone">{merchant.phone || '—'}</DetailCard.Field>
           <DetailCard.Field label="Address">{merchant.address || '—'}</DetailCard.Field>
+          <DetailCard.Field label="Latitude">{merchant.latitude}</DetailCard.Field>
+          <DetailCard.Field label="Longitude">{merchant.longitude}</DetailCard.Field>
           <DetailCard.Field label="Verified">
             <StatusBadge
               status={merchant.verified ? 'Yes' : 'No'}
