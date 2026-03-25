@@ -49,11 +49,14 @@ export default function MerchantDetail() {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        latitude: parseFloat(form.latitude),
-        longitude: parseFloat(form.longitude),
-      };
+      const lat = parseFloat(form.latitude);
+      const lng = parseFloat(form.longitude);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        toast.error('Latitude and longitude must be valid numbers');
+        setSaving(false);
+        return;
+      }
+      const payload = { ...form, latitude: lat, longitude: lng };
       const { data } = await api.patch<Merchant>(`/api/admin/merchants/${id}`, payload);
       setMerchant(data);
       setEditing(false);
@@ -122,8 +125,8 @@ export default function MerchantDetail() {
               Address
               <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
             </label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <label style={{ flex: 1 }}>
+            <div className={styles.coordRow}>
+              <label>
                 Latitude
                 <input
                   type="number"
@@ -133,7 +136,7 @@ export default function MerchantDetail() {
                   onChange={(e) => setForm((p) => ({ ...p, latitude: e.target.value }))}
                 />
               </label>
-              <label style={{ flex: 1 }}>
+              <label>
                 Longitude
                 <input
                   type="number"
