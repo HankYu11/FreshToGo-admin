@@ -36,6 +36,8 @@ export interface Merchant {
   email: string;
   phone: string;
   address: string;
+  latitude: number;
+  longitude: number;
   verified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -46,6 +48,8 @@ export interface MerchantCreateRequest {
   email: string;
   phone: string;
   address: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface User {
