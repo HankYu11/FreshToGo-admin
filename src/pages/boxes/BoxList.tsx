@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import api from '../../lib/api';
 import type { Box, PaginatedResponse, Merchant } from '../../types/api';
+import { usePaginatedList } from '../../lib/usePaginatedList';
 import DataTable from '../../components/DataTable';
 import type { Column } from '../../components/DataTable';
 import Filters from '../../components/Filters';
 import type { FilterDropdown } from '../../components/Filters';
 import StatusBadge from '../../components/StatusBadge';
+import PageHeader from '../../components/PageHeader';
 
 const columns: Column<Box>[] = [
   { key: 'name', header: 'Name' },
@@ -42,23 +43,13 @@ const columns: Column<Box>[] = [
   },
 ];
 
-interface FetchState {
-  data: Box[];
-  totalPages: number;
-  key: string;
-}
-
 export default function BoxList() {
   const navigate = useNavigate();
-  const [fetchState, setFetchState] = useState<FetchState | null>(null);
-  const [page, setPage] = useState(0);
   const [merchantId, setMerchantId] = useState('');
   const [status, setStatus] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [merchantOptions, setMerchantOptions] = useState<Array<{ value: string; label: string }>>([]);
-
-  const fetchKey = `${page}:${merchantId}:${status}:${dateFrom}:${dateTo}`;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,31 +65,16 @@ export default function BoxList() {
     return () => controller.abort();
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    api
-      .get<PaginatedResponse<Box>>('/api/admin/boxes', {
-        params: {
-          page,
-          size: 20,
-          merchantId: merchantId || undefined,
-          status: status || undefined,
-          from: dateFrom || undefined,
-          to: dateTo || undefined,
-        },
-        signal: controller.signal,
-      })
-      .then(({ data: res }) => {
-        setFetchState({ data: res.content, totalPages: res.totalPages, key: fetchKey });
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) toast.error('Failed to load boxes');
-        throw err;
-      });
-    return () => controller.abort();
-  }, [page, merchantId, status, dateFrom, dateTo, fetchKey]);
-
-  const loading = fetchState === null || fetchState.key !== fetchKey;
+  const { data, loading, page, totalPages, setPage } = usePaginatedList<Box>(
+    '/api/admin/boxes',
+    {
+      merchantId: merchantId || undefined,
+      status: status || undefined,
+      from: dateFrom || undefined,
+      to: dateTo || undefined,
+    },
+    { errorMessage: 'Failed to load boxes' },
+  );
 
   const filters: FilterDropdown[] = [
     {
@@ -128,7 +104,7 @@ export default function BoxList() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '1rem' }}>Boxes</h1>
+      <PageHeader title="Boxes" />
       <Filters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -139,10 +115,10 @@ export default function BoxList() {
       />
       <DataTable
         columns={columns}
-        data={fetchState?.data ?? []}
+        data={data}
         loading={loading}
         page={page}
-        totalPages={fetchState?.totalPages ?? 0}
+        totalPages={totalPages}
         onPageChange={setPage}
         onRowClick={(row) => navigate(`/boxes/${row.id}`)}
         keyExtractor={(row) => row.id}
