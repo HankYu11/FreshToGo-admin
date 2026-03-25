@@ -38,8 +38,7 @@ export function usePaginatedList<T>(
         }
       });
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, page, size, paramsKey, errorMessage]);
+  }, [endpoint, page, size, paramsKey, errorMessage, fetchKey]);
 
   const loading = fetchState === null || fetchState.key !== fetchKey;
 
