@@ -32,9 +32,8 @@ export function usePaginatedList<T>(
       .then(({ data: res }) => {
         setFetchState({ data: res.content, totalPages: res.totalPages, key: fetchKey });
       })
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error(errorMessage);
-        throw err;
       });
     return () => controller.abort();
   }, [endpoint, page, size, paramsKey, fetchKey, errorMessage]);

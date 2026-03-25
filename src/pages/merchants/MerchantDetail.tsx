@@ -11,6 +11,7 @@ import StatusBadge from '../../components/StatusBadge';
 import PageHeader from '../../components/PageHeader';
 import DetailCard from '../../components/DetailCard';
 import { VERIFIED_COLORS } from '../../constants/statusColors';
+import styles from './MerchantDetail.module.css';
 
 export default function MerchantDetail() {
   const navigate = useNavigate();
@@ -87,25 +88,25 @@ export default function MerchantDetail() {
       </PageHeader>
 
       {editing ? (
-        <div style={{ maxWidth: 600 }}>
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div className={styles.editForm}>
+          <form onSubmit={handleSave}>
+            <label>
               Store Name
               <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label>
               Email
               <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label>
               Phone
               <input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label>
               Address
               <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
             </label>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div className={styles.formActions}>
               <button type="submit" className="btn-primary" disabled={saving}>
                 {saving ? 'Saving...' : 'Save'}
               </button>

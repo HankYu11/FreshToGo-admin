@@ -16,9 +16,8 @@ export function useDetail<T>(
     api
       .get<T>(`${baseEndpoint}/${id}`, { signal: controller.signal })
       .then(({ data: result }) => setData(result))
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error(errorMessage);
-        throw err;
       });
     return () => controller.abort();
   }, [baseEndpoint, id, errorMessage]);
