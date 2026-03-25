@@ -59,35 +59,24 @@ describe('useDetail', () => {
     expect(result.current.data).toEqual({ id: '42', name: 'Updated' });
   });
 
-  it('shows toast on error', async () => {
-    const handler = () => {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.on('unhandledRejection', handler);
-
+  it('shows toast and sets loading false on error', async () => {
     mockGet.mockRejectedValue(new Error('Not found'));
-    renderHook(() => useDetail('/api/items', { errorMessage: 'Failed to load item' }), { wrapper });
+    const { result } = renderHook(() => useDetail('/api/items', { errorMessage: 'Failed to load item' }), { wrapper });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to load item');
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.off('unhandledRejection', handler);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.data).toBeNull();
   });
 
   it('uses default error message', async () => {
-    const handler = () => {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.on('unhandledRejection', handler);
-
     mockGet.mockRejectedValue(new Error('fail'));
-    renderHook(() => useDetail('/api/items'), { wrapper });
+    const { result } = renderHook(() => useDetail('/api/items'), { wrapper });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to load data');
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.off('unhandledRejection', handler);
+    expect(result.current.loading).toBe(false);
   });
 });

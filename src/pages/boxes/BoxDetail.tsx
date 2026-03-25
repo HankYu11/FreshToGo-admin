@@ -42,7 +42,7 @@ export default function BoxDetail() {
       { errorMessage: 'Failed to load reservations' },
     );
 
-  if (boxLoading) {
+  if (boxLoading || !box) {
     return (
       <div>
         <h1>Box Detail</h1>
@@ -53,23 +53,23 @@ export default function BoxDetail() {
 
   return (
     <div>
-      <PageHeader title={box!.name} />
+      <PageHeader title={box.name} />
 
       <DetailCard style={{ marginBottom: '2rem' }}>
-        <DetailCard.Field label="Merchant">{box!.merchantName}</DetailCard.Field>
-        <DetailCard.Field label="Description">{box!.description || '—'}</DetailCard.Field>
+        <DetailCard.Field label="Merchant">{box.merchantName}</DetailCard.Field>
+        <DetailCard.Field label="Description">{box.description || '—'}</DetailCard.Field>
         <DetailCard.Field label="Price">
           <span style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>
-            ${box!.originalPrice.toFixed(2)}
+            ${box.originalPrice.toFixed(2)}
           </span>
           {' → '}
-          <strong>${box!.discountedPrice.toFixed(2)}</strong>
+          <strong>${box.discountedPrice.toFixed(2)}</strong>
         </DetailCard.Field>
-        <DetailCard.Field label="Quantity">{box!.remaining} remaining of {box!.quantity}</DetailCard.Field>
-        <DetailCard.Field label="Status"><StatusBadge status={box!.status} /></DetailCard.Field>
-        <DetailCard.Field label="Sale Date">{new Date(box!.saleDate).toLocaleDateString()}</DetailCard.Field>
+        <DetailCard.Field label="Quantity">{box.remaining} remaining of {box.quantity}</DetailCard.Field>
+        <DetailCard.Field label="Status"><StatusBadge status={box.status} /></DetailCard.Field>
+        <DetailCard.Field label="Sale Date">{new Date(box.saleDate).toLocaleDateString()}</DetailCard.Field>
         <DetailCard.Field label="Pickup Window">
-          {new Date(box!.pickupStart).toLocaleString()} — {new Date(box!.pickupEnd).toLocaleString()}
+          {new Date(box.pickupStart).toLocaleString()} — {new Date(box.pickupEnd).toLocaleString()}
         </DetailCard.Field>
       </DetailCard>
 

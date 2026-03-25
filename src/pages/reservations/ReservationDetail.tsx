@@ -24,15 +24,15 @@ export default function ReservationDetail() {
     setReservation(data);
     toast.success('Reservation cancelled');
     setCancelReason('');
-  });
+  }, { errorMessage: 'Failed to cancel reservation' });
 
   const pickupAction = useConfirmAction(async () => {
     const { data } = await api.patch<Reservation>(`/api/admin/reservations/${id}/pickup`);
     setReservation(data);
     toast.success('Marked as picked up');
-  });
+  }, { errorMessage: 'Failed to mark as picked up' });
 
-  if (loading) {
+  if (loading || !reservation) {
     return (
       <div>
         <h1>Reservation Detail</h1>
@@ -41,11 +41,11 @@ export default function ReservationDetail() {
     );
   }
 
-  const canAct = !['CANCELLED', 'PICKED_UP', 'EXPIRED'].includes(reservation!.status);
+  const canAct = !['CANCELLED', 'PICKED_UP', 'EXPIRED'].includes(reservation.status);
 
   return (
     <div>
-      <PageHeader title={`Reservation ${reservation!.id.slice(0, 8)}`}>
+      <PageHeader title={`Reservation ${reservation.id.slice(0, 8)}`}>
         {canAct && (
           <button className="btn-primary" onClick={pickupAction.requestConfirm}>
             Mark Picked Up
@@ -59,19 +59,19 @@ export default function ReservationDetail() {
       </PageHeader>
 
       <DetailCard>
-        <DetailCard.Field label="Order ID">{reservation!.id}</DetailCard.Field>
-        <DetailCard.Field label="User">{reservation!.userName}</DetailCard.Field>
-        <DetailCard.Field label="Merchant">{reservation!.merchantName}</DetailCard.Field>
-        <DetailCard.Field label="Box">{reservation!.boxName}</DetailCard.Field>
-        <DetailCard.Field label="Price">${reservation!.price.toFixed(2)}</DetailCard.Field>
+        <DetailCard.Field label="Order ID">{reservation.id}</DetailCard.Field>
+        <DetailCard.Field label="User">{reservation.userName}</DetailCard.Field>
+        <DetailCard.Field label="Merchant">{reservation.merchantName}</DetailCard.Field>
+        <DetailCard.Field label="Box">{reservation.boxName}</DetailCard.Field>
+        <DetailCard.Field label="Price">${reservation.price.toFixed(2)}</DetailCard.Field>
         <DetailCard.Field label="Status">
-          <StatusBadge status={reservation!.status} colorMap={RESERVATION_STATUS_COLORS} />
+          <StatusBadge status={reservation.status} colorMap={RESERVATION_STATUS_COLORS} />
         </DetailCard.Field>
-        <DetailCard.Field label="Pickup Time">{new Date(reservation!.pickupTime).toLocaleString()}</DetailCard.Field>
-        {reservation!.cancelReason && (
-          <DetailCard.Field label="Cancel Reason">{reservation!.cancelReason}</DetailCard.Field>
+        <DetailCard.Field label="Pickup Time">{new Date(reservation.pickupTime).toLocaleString()}</DetailCard.Field>
+        {reservation.cancelReason && (
+          <DetailCard.Field label="Cancel Reason">{reservation.cancelReason}</DetailCard.Field>
         )}
-        <DetailCard.Field label="Created">{new Date(reservation!.createdAt).toLocaleString()}</DetailCard.Field>
+        <DetailCard.Field label="Created">{new Date(reservation.createdAt).toLocaleString()}</DetailCard.Field>
       </DetailCard>
 
       <ConfirmDialog

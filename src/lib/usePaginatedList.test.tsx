@@ -68,37 +68,25 @@ describe('usePaginatedList', () => {
     });
   });
 
-  it('shows toast on error', async () => {
-    const handler = () => {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.on('unhandledRejection', handler);
-
+  it('shows toast on error and stops loading', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
-    renderHook(() =>
+    const { result } = renderHook(() =>
       usePaginatedList('/api/items', {}, { errorMessage: 'Failed to load items' }),
     );
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to load items');
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.off('unhandledRejection', handler);
+    expect(result.current.loading).toBe(false);
   });
 
   it('uses default error message when none provided', async () => {
-    const handler = () => {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.on('unhandledRejection', handler);
-
     mockGet.mockRejectedValue(new Error('fail'));
-    renderHook(() => usePaginatedList('/api/items'));
+    const { result } = renderHook(() => usePaginatedList('/api/items'));
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to load data');
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).process.off('unhandledRejection', handler);
+    expect(result.current.loading).toBe(false);
   });
 });

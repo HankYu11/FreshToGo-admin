@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -27,12 +27,16 @@ export default function MerchantDetail() {
     await api.delete(`/api/admin/merchants/${id}`);
     toast.success('Merchant deleted');
     navigate('/merchants');
-  });
+  }, { errorMessage: 'Failed to delete merchant' });
 
   // Sync form when merchant loads
-  if (merchant && form.name === '' && form.email === '') {
-    setForm({ name: merchant.name, email: merchant.email, phone: merchant.phone, address: merchant.address });
-  }
+  const synced = useRef(false);
+  useEffect(() => {
+    if (merchant && !synced.current) {
+      setForm({ name: merchant.name, email: merchant.email, phone: merchant.phone, address: merchant.address });
+      synced.current = true;
+    }
+  }, [merchant]);
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -62,7 +66,7 @@ export default function MerchantDetail() {
     }
   };
 
-  if (loading) {
+  if (loading || !merchant) {
     return (
       <div>
         <h1>Merchant Detail</h1>
@@ -73,9 +77,9 @@ export default function MerchantDetail() {
 
   return (
     <div>
-      <PageHeader title={merchant!.name}>
+      <PageHeader title={merchant.name}>
         <button className="btn-secondary" onClick={handleVerifyToggle}>
-          {merchant!.verified ? 'Unverify' : 'Verify'}
+          {merchant.verified ? 'Unverify' : 'Verify'}
         </button>
         {!editing && (
           <button className="btn-primary" onClick={() => setEditing(true)}>
@@ -118,23 +122,23 @@ export default function MerchantDetail() {
         </div>
       ) : (
         <DetailCard>
-          <DetailCard.Field label="Email">{merchant!.email}</DetailCard.Field>
-          <DetailCard.Field label="Phone">{merchant!.phone || '—'}</DetailCard.Field>
-          <DetailCard.Field label="Address">{merchant!.address || '—'}</DetailCard.Field>
+          <DetailCard.Field label="Email">{merchant.email}</DetailCard.Field>
+          <DetailCard.Field label="Phone">{merchant.phone || '—'}</DetailCard.Field>
+          <DetailCard.Field label="Address">{merchant.address || '—'}</DetailCard.Field>
           <DetailCard.Field label="Verified">
             <StatusBadge
-              status={merchant!.verified ? 'Yes' : 'No'}
+              status={merchant.verified ? 'Yes' : 'No'}
               colorMap={VERIFIED_COLORS}
             />
           </DetailCard.Field>
-          <DetailCard.Field label="Created">{new Date(merchant!.createdAt).toLocaleString()}</DetailCard.Field>
+          <DetailCard.Field label="Created">{new Date(merchant.createdAt).toLocaleString()}</DetailCard.Field>
         </DetailCard>
       )}
 
       <ConfirmDialog
         open={deleteAction.open}
         title="Delete Merchant"
-        message={`Are you sure you want to delete "${merchant!.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${merchant.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
         loading={deleteAction.loading}

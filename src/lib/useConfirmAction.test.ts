@@ -1,5 +1,14 @@
 import { renderHook, act } from '@testing-library/react';
 import { useConfirmAction } from './useConfirmAction';
+import { toast } from 'sonner';
+
+vi.mock('sonner', () => ({
+  toast: { error: vi.fn() },
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('useConfirmAction', () => {
   it('starts with open=false and loading=false', () => {
@@ -61,16 +70,29 @@ describe('useConfirmAction', () => {
     expect(result.current.open).toBe(false);
   });
 
-  it('closes dialog even if action throws', async () => {
+  it('shows error toast and closes dialog when action throws', async () => {
+    const action = vi.fn().mockRejectedValue(new Error('fail'));
+    const { result } = renderHook(() =>
+      useConfirmAction(action, { errorMessage: 'Delete failed' }),
+    );
+
+    await act(() => result.current.requestConfirm());
+    await act(() => result.current.confirm());
+
+    expect(toast.error).toHaveBeenCalledWith('Delete failed');
+    expect(result.current.open).toBe(false);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('uses default error message when none provided', async () => {
     const action = vi.fn().mockRejectedValue(new Error('fail'));
     const { result } = renderHook(() => useConfirmAction(action));
 
     await act(() => result.current.requestConfirm());
-    await act(async () => {
-      await result.current.confirm().catch(() => {});
-    });
+    await act(() => result.current.confirm());
+
+    expect(toast.error).toHaveBeenCalledWith('Operation failed');
     expect(result.current.open).toBe(false);
-    expect(result.current.loading).toBe(false);
   });
 
   it('uses latest action via ref (no stale closure)', async () => {

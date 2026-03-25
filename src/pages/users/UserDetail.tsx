@@ -21,13 +21,13 @@ export default function UserDetail() {
     await api.delete(`/api/admin/users/${id}`);
     toast.success('User deleted');
     navigate('/users');
-  });
+  }, { errorMessage: 'Failed to delete user' });
 
   const resetAction = useConfirmAction(async () => {
     const { data } = await api.patch<User>(`/api/admin/users/${id}/reset-noshow`);
     setUser(data);
     toast.success('No-show count reset');
-  });
+  }, { errorMessage: 'Failed to reset no-show count' });
 
   const handleBlockToggle = async () => {
     if (!user) return;
@@ -42,7 +42,7 @@ export default function UserDetail() {
     }
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div>
         <h1>User Detail</h1>
@@ -53,9 +53,9 @@ export default function UserDetail() {
 
   return (
     <div>
-      <PageHeader title={user!.name}>
+      <PageHeader title={user.name}>
         <button className="btn-secondary" onClick={handleBlockToggle}>
-          {user!.blocked ? 'Unblock' : 'Block'}
+          {user.blocked ? 'Unblock' : 'Block'}
         </button>
         <button className="btn-secondary" onClick={resetAction.requestConfirm}>
           Reset No-Shows
@@ -66,22 +66,22 @@ export default function UserDetail() {
       </PageHeader>
 
       <DetailCard>
-        <DetailCard.Field label="Email">{user!.email}</DetailCard.Field>
-        <DetailCard.Field label="Phone">{user!.phone || '—'}</DetailCard.Field>
-        <DetailCard.Field label="No-Show Count">{user!.noShowCount}</DetailCard.Field>
+        <DetailCard.Field label="Email">{user.email}</DetailCard.Field>
+        <DetailCard.Field label="Phone">{user.phone || '—'}</DetailCard.Field>
+        <DetailCard.Field label="No-Show Count">{user.noShowCount}</DetailCard.Field>
         <DetailCard.Field label="Status">
           <StatusBadge
-            status={user!.blocked ? 'Blocked' : 'Active'}
+            status={user.blocked ? 'Blocked' : 'Active'}
             colorMap={USER_STATUS_COLORS}
           />
         </DetailCard.Field>
-        <DetailCard.Field label="Created">{new Date(user!.createdAt).toLocaleString()}</DetailCard.Field>
+        <DetailCard.Field label="Created">{new Date(user.createdAt).toLocaleString()}</DetailCard.Field>
       </DetailCard>
 
       <ConfirmDialog
         open={resetAction.open}
         title="Reset No-Show Count"
-        message={`Reset no-show count for "${user!.name}" to 0?`}
+        message={`Reset no-show count for "${user.name}" to 0?`}
         confirmLabel="Reset"
         loading={resetAction.loading}
         onConfirm={resetAction.confirm}
@@ -91,7 +91,7 @@ export default function UserDetail() {
       <ConfirmDialog
         open={deleteAction.open}
         title="Delete User"
-        message={`Are you sure you want to delete "${user!.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${user.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
         loading={deleteAction.loading}

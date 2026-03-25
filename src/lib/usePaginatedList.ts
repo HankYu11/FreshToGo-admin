@@ -23,20 +23,23 @@ export function usePaginatedList<T>(
 
   useEffect(() => {
     const controller = new AbortController();
-    const parsedParams = JSON.parse(paramsKey) as Record<string, string | number | undefined>;
     api
       .get<PaginatedResponse<T>>(endpoint, {
-        params: { ...parsedParams, page, size },
+        params: { ...params, page, size },
         signal: controller.signal,
       })
       .then(({ data: res }) => {
         setFetchState({ data: res.content, totalPages: res.totalPages, key: fetchKey });
       })
       .catch(() => {
-        if (!controller.signal.aborted) toast.error(errorMessage);
+        if (!controller.signal.aborted) {
+          toast.error(errorMessage);
+          setFetchState((prev) => prev ? { ...prev, key: fetchKey } : { data: [], totalPages: 0, key: fetchKey });
+        }
       });
     return () => controller.abort();
-  }, [endpoint, page, size, paramsKey, fetchKey, errorMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endpoint, page, size, paramsKey, errorMessage]);
 
   const loading = fetchState === null || fetchState.key !== fetchKey;
 
