@@ -45,9 +45,8 @@ export default function Dashboard() {
     api
       .get<DashboardStats>('/api/admin/dashboard', { signal: controller.signal })
       .then(({ data }) => setStats(data))
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error('Failed to load dashboard stats');
-        throw err;
       });
     return () => controller.abort();
   }, []);
@@ -71,9 +70,8 @@ export default function Dashboard() {
       .then(([resRes, revRes]) => {
         setChartData({ reservations: resRes.data, revenue: revRes.data, dateKey });
       })
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error('Failed to load chart data');
-        throw err;
       });
 
     return () => controller.abort();

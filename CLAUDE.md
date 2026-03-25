@@ -35,7 +35,7 @@ Strict mode is on with additional lint flags: `noUnusedLocals`, `noUnusedParamet
 - Setup file at `src/test/setup.ts` (jest-dom matchers)
 - Write unit tests for every new feature unless there is a specific blocker (e.g., heavy native API dependency with no jsdom support). If skipping tests, leave a comment explaining why.
 - Mock external dependencies (`sonner`, `recharts`, `axios`) rather than hitting real APIs
-- Use `vi.useFakeTimers()` with `fireEvent` (not `userEvent`) for debounce/timer tests
+- Use `vi.useFakeTimers()` for timer tests. `fireEvent` is often simpler than `userEvent` (which requires manual timer advancement).
 - Mock `HTMLDialogElement.prototype.showModal/close` — jsdom doesn't implement `<dialog>`
 
 ## Workflow

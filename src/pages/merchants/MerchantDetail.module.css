@@ -1,0 +1,20 @@
+.editForm {
+  max-width: 600px;
+}
+
+.editForm form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.editForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+}
