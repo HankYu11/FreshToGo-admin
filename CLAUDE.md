@@ -38,6 +38,11 @@ Strict mode is on with additional lint flags: `noUnusedLocals`, `noUnusedParamet
 - Use `vi.useFakeTimers()` for timer tests. `fireEvent` is often simpler than `userEvent` (which requires manual timer advancement).
 - Mock `HTMLDialogElement.prototype.showModal/close` — jsdom doesn't implement `<dialog>`
 
+## Branching & PRs
+
+- **`main`** is the production release branch — only merge into `main` for releases.
+- **`develop`** is the integration branch — all `feat/`, `fix/`, `chore/`, `docs/`, and other work branches should target `develop` when creating PRs.
+
 ## Workflow
 
 - Before committing, run `/simplify` to review changed code for reuse, quality, and efficiency.
