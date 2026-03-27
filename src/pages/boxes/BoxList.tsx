@@ -106,10 +106,10 @@ export default function BoxList() {
       <Filters
         filters={filters}
         onFilterChange={handleFilterChange}
-        showDateRange
-        dateFrom={saleDate}
-        dateTo={saleDate}
-        onDateRangeChange={(from) => { setSaleDate(from); setPage(0); }}
+        showSingleDate
+        singleDateLabel="Sale Date"
+        singleDateValue={saleDate}
+        onSingleDateChange={(v) => { setSaleDate(v); setPage(0); }}
       />
       <DataTable
         columns={columns}
