@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import api from '../lib/api';
-import type { DashboardStats, TimeseriesPoint } from '../types/api';
+import type { DashboardStats, TimeseriesPoint, TimeseriesResponse } from '../types/api';
 import StatCard from '../components/StatCard';
 import styles from './Dashboard.module.css';
 
@@ -45,9 +45,8 @@ export default function Dashboard() {
     api
       .get<DashboardStats>('/api/admin/dashboard', { signal: controller.signal })
       .then(({ data }) => setStats(data))
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error('Failed to load dashboard stats');
-        throw err;
       });
     return () => controller.abort();
   }, []);
@@ -59,21 +58,24 @@ export default function Dashboard() {
     const dateKey = `${dateRange.from}:${dateRange.to}`;
 
     Promise.all([
-      api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
-        params: { metric: 'reservations', from: dateRange.from, to: dateRange.to },
+      api.get<TimeseriesResponse>('/api/admin/analytics/timeseries', {
+        params: { metric: 'reservations', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
-      api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
-        params: { metric: 'revenue', from: dateRange.from, to: dateRange.to },
+      api.get<TimeseriesResponse>('/api/admin/analytics/timeseries', {
+        params: { metric: 'revenue', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
     ])
       .then(([resRes, revRes]) => {
-        setChartData({ reservations: resRes.data, revenue: revRes.data, dateKey });
+        setChartData({
+          reservations: resRes.data?.data ?? [],
+          revenue: revRes.data?.data ?? [],
+          dateKey,
+        });
       })
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) toast.error('Failed to load chart data');
-        throw err;
       });
 
     return () => controller.abort();
@@ -90,10 +92,10 @@ export default function Dashboard() {
       <div className={styles.statsGrid}>
         <StatCard title="Total Users" value={stats?.totalUsers ?? 0} loading={statsLoading} />
         <StatCard title="Total Merchants" value={stats?.totalMerchants ?? 0} loading={statsLoading} />
-        <StatCard title="Active Reservations" value={stats?.activeReservations ?? 0} loading={statsLoading} />
-        <StatCard title="Total Boxes" value={stats?.totalBoxes ?? 0} loading={statsLoading} />
-        <StatCard title="Total Revenue" value={formatCurrency(stats?.totalRevenue ?? 0)} loading={statsLoading} />
-        <StatCard title="New Users Today" value={stats?.newUsersToday ?? 0} loading={statsLoading} />
+        <StatCard title="Active Merchants" value={stats?.activeMerchants ?? 0} loading={statsLoading} />
+        <StatCard title="Today's Reservations" value={stats?.todayReservations ?? 0} loading={statsLoading} />
+        <StatCard title="Today's Revenue" value={formatCurrency(stats?.todayRevenue ?? 0)} loading={statsLoading} />
+        <StatCard title="No-Show Rate" value={`${((stats?.noShowRate ?? 0) * 100).toFixed(1)}%`} loading={statsLoading} />
       </div>
 
       <div className={styles.dateRange}>

@@ -44,7 +44,7 @@ describe('api interceptors', () => {
 
     // Mock axios.post for the refresh call
     const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({
-      data: { accessToken: 'newtoken', refreshToken: 'newrefresh' },
+      data: { data: { accessToken: 'newtoken', refreshToken: 'newrefresh' } },
     });
 
     const { default: api } = await import('./api');
@@ -71,19 +71,15 @@ describe('api interceptors', () => {
     postSpy.mockRestore();
   });
 
-  it('401 with no refresh token clears storage, redirects to /login', async () => {
+  it('401 with no refresh token dispatches auth-failed event', async () => {
     localStorage.setItem('access_token', 'old');
     vi.resetModules();
 
-    const original = window.location;
-    Object.defineProperty(window, 'location', {
-      value: { ...original, href: '' },
-      writable: true,
-      configurable: true,
-    });
-
     const { default: api } = await import('./api');
     const handleError = getResponseErrorHandler(api);
+
+    const authFailedHandler = vi.fn();
+    window.addEventListener('auth-failed', authFailedHandler);
 
     const error = {
       config: { headers: {} },
@@ -91,15 +87,9 @@ describe('api interceptors', () => {
     };
 
     await expect(handleError(error)).rejects.toBeDefined();
-    expect(localStorage.getItem('access_token')).toBeNull();
-    expect(localStorage.getItem('refresh_token')).toBeNull();
-    expect(window.location.href).toBe('/login');
+    expect(authFailedHandler).toHaveBeenCalledTimes(1);
 
-    Object.defineProperty(window, 'location', {
-      value: original,
-      writable: true,
-      configurable: true,
-    });
+    window.removeEventListener('auth-failed', authFailedHandler);
   });
 
   it('queues concurrent 401s, resolves after single refresh', async () => {
@@ -108,7 +98,7 @@ describe('api interceptors', () => {
     vi.resetModules();
 
     const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({
-      data: { accessToken: 'newtoken' },
+      data: { data: { accessToken: 'newtoken' } },
     });
 
     const { default: api } = await import('./api');

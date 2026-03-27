@@ -1,32 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import api from '../../lib/api';
 import type { Reservation, PaginatedResponse, Merchant } from '../../types/api';
+import { usePaginatedList } from '../../lib/usePaginatedList';
 import DataTable from '../../components/DataTable';
 import type { Column } from '../../components/DataTable';
 import Filters from '../../components/Filters';
 import type { FilterDropdown } from '../../components/Filters';
 import StatusBadge from '../../components/StatusBadge';
-
-const statusColors: Record<string, string> = {
-  PENDING: '#d97706',
-  CONFIRMED: '#2563eb',
-  PICKED_UP: '#16a34a',
-  CANCELLED: '#6b7280',
-  EXPIRED: '#6b7280',
-  NO_SHOW: '#dc2626',
-};
+import PageHeader from '../../components/PageHeader';
+import { RESERVATION_STATUS_COLORS } from '../../constants/statusColors';
 
 const columns: Column<Reservation>[] = [
   {
-    key: 'id',
+    key: 'orderId',
     header: 'Order ID',
-    render: (row) => row.id.slice(0, 8),
+    render: (row) => row.orderId,
   },
-  { key: 'userName', header: 'User' },
+  { key: 'userDisplayName', header: 'User' },
   { key: 'boxName', header: 'Box' },
-  { key: 'merchantName', header: 'Merchant' },
+  { key: 'merchantStoreName', header: 'Merchant' },
   {
     key: 'price',
     header: 'Price',
@@ -35,32 +28,22 @@ const columns: Column<Reservation>[] = [
   {
     key: 'status',
     header: 'Status',
-    render: (row) => <StatusBadge status={row.status} colorMap={statusColors} />,
+    render: (row) => <StatusBadge status={row.status} colorMap={RESERVATION_STATUS_COLORS} />,
   },
   {
-    key: 'pickupTime',
+    key: 'pickupDate',
     header: 'Pickup',
-    render: (row) => new Date(row.pickupTime).toLocaleString(),
+    render: (row) => new Date(row.pickupDate).toLocaleDateString(),
   },
 ];
 
-interface FetchState {
-  data: Reservation[];
-  totalPages: number;
-  key: string;
-}
-
 export default function ReservationList() {
   const navigate = useNavigate();
-  const [fetchState, setFetchState] = useState<FetchState | null>(null);
-  const [page, setPage] = useState(0);
   const [merchantId, setMerchantId] = useState('');
   const [status, setStatus] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [merchantOptions, setMerchantOptions] = useState<Array<{ value: string; label: string }>>([]);
-
-  const fetchKey = `${page}:${merchantId}:${status}:${dateFrom}:${dateTo}`;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -70,37 +53,22 @@ export default function ReservationList() {
         signal: controller.signal,
       })
       .then(({ data: res }) => {
-        setMerchantOptions(res.content.map((m) => ({ value: m.id, label: m.name })));
+        setMerchantOptions(res.items.map((m) => ({ value: m.id, label: m.storeName })));
       })
       .catch(() => {});
     return () => controller.abort();
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    api
-      .get<PaginatedResponse<Reservation>>('/api/admin/reservations', {
-        params: {
-          page,
-          size: 20,
-          merchantId: merchantId || undefined,
-          status: status || undefined,
-          from: dateFrom || undefined,
-          to: dateTo || undefined,
-        },
-        signal: controller.signal,
-      })
-      .then(({ data: res }) => {
-        setFetchState({ data: res.content, totalPages: res.totalPages, key: fetchKey });
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) toast.error('Failed to load reservations');
-        throw err;
-      });
-    return () => controller.abort();
-  }, [page, merchantId, status, dateFrom, dateTo, fetchKey]);
-
-  const loading = fetchState === null || fetchState.key !== fetchKey;
+  const { data, loading, page, totalPages, setPage } = usePaginatedList<Reservation>(
+    '/api/admin/reservations',
+    {
+      merchantId: merchantId || undefined,
+      status: status || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    },
+    { errorMessage: 'Failed to load reservations' },
+  );
 
   const filters: FilterDropdown[] = [
     {
@@ -113,11 +81,11 @@ export default function ReservationList() {
       key: 'status',
       label: 'All Statuses',
       options: [
-        { value: 'PENDING', label: 'Pending' },
-        { value: 'CONFIRMED', label: 'Confirmed' },
+        { value: 'ACTIVE', label: 'Active' },
         { value: 'PICKED_UP', label: 'Picked Up' },
         { value: 'CANCELLED', label: 'Cancelled' },
         { value: 'EXPIRED', label: 'Expired' },
+        { value: 'NO_SHOW', label: 'No Show' },
       ],
       value: status,
     },
@@ -131,7 +99,7 @@ export default function ReservationList() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '1rem' }}>Reservations</h1>
+      <PageHeader title="Reservations" />
       <Filters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -142,10 +110,10 @@ export default function ReservationList() {
       />
       <DataTable
         columns={columns}
-        data={fetchState?.data ?? []}
+        data={data}
         loading={loading}
         page={page}
-        totalPages={fetchState?.totalPages ?? 0}
+        totalPages={totalPages}
         onPageChange={setPage}
         onRowClick={(row) => navigate(`/reservations/${row.id}`)}
         keyExtractor={(row) => row.id}

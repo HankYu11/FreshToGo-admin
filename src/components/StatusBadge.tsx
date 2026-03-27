@@ -12,6 +12,13 @@ const defaultColors: Record<string, string> = {
   NO_SHOW: '#dc2626',
 };
 
+function hexToRgba(hex: string, alpha: number): string {
+  const match = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+  if (!match) return hex;
+  const [, r, g, b] = match.map((x, i) => (i > 0 ? parseInt(x, 16) : x));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface StatusBadgeProps {
   status: string;
   colorMap?: Record<string, string>;
@@ -25,7 +32,7 @@ export default function StatusBadge({ status, colorMap }: StatusBadgeProps) {
   return (
     <span
       className={styles.badge}
-      style={{ backgroundColor: `${color}14`, color, borderColor: `${color}30` }}
+      style={{ backgroundColor: hexToRgba(color, 0.08), color, borderColor: hexToRgba(color, 0.19) }}
     >
       {label}
     </span>

@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
 import styles from './Layout.module.css';
@@ -18,10 +19,15 @@ export default function Layout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/login');
-  };
+  }, [logout, navigate]);
+
+  useEffect(() => {
+    window.addEventListener('auth-failed', handleLogout);
+    return () => window.removeEventListener('auth-failed', handleLogout);
+  }, [handleLogout]);
 
   return (
     <div className={styles.layout}>

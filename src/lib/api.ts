@@ -53,9 +53,7 @@ api.interceptors.response.use(
     const refreshToken = localStorage.getItem('refresh_token');
     if (!refreshToken) {
       isRefreshing = false;
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
+      window.dispatchEvent(new Event('auth-failed'));
       return Promise.reject(error);
     }
 
@@ -64,10 +62,10 @@ api.interceptors.response.use(
         `${api.defaults.baseURL}/api/admin/refresh`,
         { refreshToken },
       );
-      const newToken = data.accessToken;
+      const newToken = data.data.accessToken;
       localStorage.setItem('access_token', newToken);
-      if (data.refreshToken) {
-        localStorage.setItem('refresh_token', data.refreshToken);
+      if (data.data.refreshToken) {
+        localStorage.setItem('refresh_token', data.data.refreshToken);
       }
       api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
       processQueue(null, newToken);
@@ -75,14 +73,20 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
+      window.dispatchEvent(new Event('auth-failed'));
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
     }
   },
 );
+
+// Unwrap { success, data } envelope so callers receive the inner payload directly
+api.interceptors.response.use((response) => {
+  if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+    response.data = response.data.data;
+  }
+  return response;
+});
 
 export default api;
