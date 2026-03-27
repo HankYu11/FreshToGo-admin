@@ -73,7 +73,7 @@ export default function BoxDetail() {
       <h2 style={{ marginBottom: '1rem' }}>Reservations</h2>
       <DataTable
         columns={reservationColumns}
-        data={box.reservations}
+        data={box.reservations ?? []}
         loading={false}
         page={0}
         totalPages={1}

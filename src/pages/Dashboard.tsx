@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import api from '../lib/api';
-import type { DashboardStats, TimeseriesPoint } from '../types/api';
+import type { DashboardStats, TimeseriesPoint, TimeseriesResponse } from '../types/api';
 import StatCard from '../components/StatCard';
 import styles from './Dashboard.module.css';
 
@@ -58,17 +58,21 @@ export default function Dashboard() {
     const dateKey = `${dateRange.from}:${dateRange.to}`;
 
     Promise.all([
-      api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
+      api.get<TimeseriesResponse>('/api/admin/analytics/timeseries', {
         params: { metric: 'reservations', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
-      api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
+      api.get<TimeseriesResponse>('/api/admin/analytics/timeseries', {
         params: { metric: 'revenue', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
     ])
       .then(([resRes, revRes]) => {
-        setChartData({ reservations: resRes.data, revenue: revRes.data, dateKey });
+        setChartData({
+          reservations: resRes.data?.data ?? [],
+          revenue: revRes.data?.data ?? [],
+          dateKey,
+        });
       })
       .catch(() => {
         if (!controller.signal.aborted) toast.error('Failed to load chart data');

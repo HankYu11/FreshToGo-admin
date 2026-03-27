@@ -34,6 +34,13 @@ export interface TimeseriesPoint {
   value: number;
 }
 
+export interface TimeseriesResponse {
+  metric: string;
+  dateFrom: string;
+  dateTo: string;
+  data: TimeseriesPoint[];
+}
+
 export interface Merchant {
   id: string;
   email: string;
