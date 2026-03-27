@@ -69,8 +69,8 @@ export default function Dashboard() {
     ])
       .then(([resRes, revRes]) => {
         setChartData({
-          reservations: resRes.data.data,
-          revenue: revRes.data.data,
+          reservations: resRes.data?.data ?? [],
+          revenue: revRes.data?.data ?? [],
           dateKey,
         });
       })
