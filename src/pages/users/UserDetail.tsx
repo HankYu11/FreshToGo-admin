@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../lib/api';
-import type { User } from '../../types/api';
+import type { UserDetail as UserDetailType } from '../../types/api';
 import { useDetail } from '../../lib/useDetail';
 import { useConfirmAction } from '../../lib/useConfirmAction';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -12,7 +12,7 @@ import { USER_STATUS_COLORS } from '../../constants/statusColors';
 
 export default function UserDetail() {
   const navigate = useNavigate();
-  const { data: user, setData: setUser, loading, id } = useDetail<User>(
+  const { data: user, setData: setUser, loading, id } = useDetail<UserDetailType>(
     '/api/admin/users',
     { errorMessage: 'Failed to load user' },
   );
@@ -24,7 +24,9 @@ export default function UserDetail() {
   }, { errorMessage: 'Failed to delete user' });
 
   const resetAction = useConfirmAction(async () => {
-    const { data } = await api.patch<User>(`/api/admin/users/${id}/reset-noshow`);
+    const { data } = await api.patch<UserDetailType>(`/api/admin/users/${id}`, {
+      noShowCount: 0,
+    });
     setUser(data);
     toast.success('No-show count reset');
   }, { errorMessage: 'Failed to reset no-show count' });
@@ -32,11 +34,11 @@ export default function UserDetail() {
   const handleBlockToggle = async () => {
     if (!user) return;
     try {
-      const { data } = await api.patch<User>(`/api/admin/users/${id}/block`, {
-        blocked: !user.blocked,
+      const { data } = await api.patch<UserDetailType>(`/api/admin/users/${id}`, {
+        isBlocked: !user.isBlocked,
       });
       setUser(data);
-      toast.success(data.blocked ? 'User blocked' : 'User unblocked');
+      toast.success(data.isBlocked ? 'User blocked' : 'User unblocked');
     } catch {
       toast.error('Failed to update block status');
     }
@@ -53,9 +55,9 @@ export default function UserDetail() {
 
   return (
     <div>
-      <PageHeader title={user.name}>
+      <PageHeader title={user.displayName}>
         <button className="btn-secondary" onClick={handleBlockToggle}>
-          {user.blocked ? 'Unblock' : 'Block'}
+          {user.isBlocked ? 'Unblock' : 'Block'}
         </button>
         <button className="btn-secondary" onClick={resetAction.requestConfirm}>
           Reset No-Shows
@@ -66,22 +68,24 @@ export default function UserDetail() {
       </PageHeader>
 
       <DetailCard>
-        <DetailCard.Field label="Email">{user.email}</DetailCard.Field>
-        <DetailCard.Field label="Phone">{user.phone || '—'}</DetailCard.Field>
         <DetailCard.Field label="No-Show Count">{user.noShowCount}</DetailCard.Field>
         <DetailCard.Field label="Status">
           <StatusBadge
-            status={user.blocked ? 'Blocked' : 'Active'}
+            status={user.isBlocked ? 'Blocked' : 'Active'}
             colorMap={USER_STATUS_COLORS}
           />
         </DetailCard.Field>
+        <DetailCard.Field label="Total Reservations">{user.totalReservations}</DetailCard.Field>
+        <DetailCard.Field label="Completed Pickups">{user.completedPickups}</DetailCard.Field>
+        <DetailCard.Field label="Cancellations">{user.cancellations}</DetailCard.Field>
+        <DetailCard.Field label="No-Shows">{user.noShows}</DetailCard.Field>
         <DetailCard.Field label="Created">{new Date(user.createdAt).toLocaleString()}</DetailCard.Field>
       </DetailCard>
 
       <ConfirmDialog
         open={resetAction.open}
         title="Reset No-Show Count"
-        message={`Reset no-show count for "${user.name}" to 0?`}
+        message={`Reset no-show count for "${user.displayName}" to 0?`}
         confirmLabel="Reset"
         loading={resetAction.loading}
         onConfirm={resetAction.confirm}
@@ -91,7 +95,7 @@ export default function UserDetail() {
       <ConfirmDialog
         open={deleteAction.open}
         title="Delete User"
-        message={`Are you sure you want to delete "${user.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${user.displayName}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
         loading={deleteAction.loading}

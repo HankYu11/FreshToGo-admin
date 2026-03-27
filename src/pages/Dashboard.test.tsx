@@ -30,10 +30,10 @@ import { toast } from 'sonner';
 const statsData: DashboardStats = {
   totalUsers: 100,
   totalMerchants: 20,
-  activeReservations: 15,
-  totalBoxes: 50,
-  totalRevenue: 5000,
-  newUsersToday: 3,
+  activeMerchants: 15,
+  todayReservations: 50,
+  todayRevenue: 5000,
+  noShowRate: 0.08,
 };
 
 describe('Dashboard', () => {

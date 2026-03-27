@@ -10,15 +10,14 @@ import PageHeader from '../../components/PageHeader';
 import { USER_STATUS_COLORS } from '../../constants/statusColors';
 
 const columns: Column<User>[] = [
-  { key: 'name', header: 'Display Name' },
-  { key: 'email', header: 'Email' },
+  { key: 'displayName', header: 'Display Name' },
   { key: 'noShowCount', header: 'No-Shows' },
   {
-    key: 'blocked',
+    key: 'isBlocked',
     header: 'Blocked',
     render: (row) => (
       <StatusBadge
-        status={row.blocked ? 'Blocked' : 'Active'}
+        status={row.isBlocked ? 'Blocked' : 'Active'}
         colorMap={USER_STATUS_COLORS}
       />
     ),
@@ -37,7 +36,7 @@ export default function UserList() {
 
   const { data, loading, page, totalPages, setPage } = usePaginatedList<User>(
     '/api/admin/users',
-    { search: search || undefined, blocked: blocked || undefined },
+    { search: search || undefined, isBlocked: blocked || undefined },
     { errorMessage: 'Failed to load users' },
   );
 

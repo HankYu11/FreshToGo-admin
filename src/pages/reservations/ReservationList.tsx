@@ -13,13 +13,13 @@ import { RESERVATION_STATUS_COLORS } from '../../constants/statusColors';
 
 const columns: Column<Reservation>[] = [
   {
-    key: 'id',
+    key: 'orderId',
     header: 'Order ID',
-    render: (row) => row.id.slice(0, 8),
+    render: (row) => row.orderId,
   },
-  { key: 'userName', header: 'User' },
+  { key: 'userDisplayName', header: 'User' },
   { key: 'boxName', header: 'Box' },
-  { key: 'merchantName', header: 'Merchant' },
+  { key: 'merchantStoreName', header: 'Merchant' },
   {
     key: 'price',
     header: 'Price',
@@ -31,9 +31,9 @@ const columns: Column<Reservation>[] = [
     render: (row) => <StatusBadge status={row.status} colorMap={RESERVATION_STATUS_COLORS} />,
   },
   {
-    key: 'pickupTime',
+    key: 'pickupDate',
     header: 'Pickup',
-    render: (row) => new Date(row.pickupTime).toLocaleString(),
+    render: (row) => new Date(row.pickupDate).toLocaleDateString(),
   },
 ];
 
@@ -53,7 +53,7 @@ export default function ReservationList() {
         signal: controller.signal,
       })
       .then(({ data: res }) => {
-        setMerchantOptions(res.content.map((m) => ({ value: m.id, label: m.name })));
+        setMerchantOptions(res.items.map((m) => ({ value: m.id, label: m.storeName })));
       })
       .catch(() => {});
     return () => controller.abort();
@@ -64,8 +64,8 @@ export default function ReservationList() {
     {
       merchantId: merchantId || undefined,
       status: status || undefined,
-      from: dateFrom || undefined,
-      to: dateTo || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
     },
     { errorMessage: 'Failed to load reservations' },
   );
@@ -81,11 +81,11 @@ export default function ReservationList() {
       key: 'status',
       label: 'All Statuses',
       options: [
-        { value: 'PENDING', label: 'Pending' },
-        { value: 'CONFIRMED', label: 'Confirmed' },
+        { value: 'ACTIVE', label: 'Active' },
         { value: 'PICKED_UP', label: 'Picked Up' },
         { value: 'CANCELLED', label: 'Cancelled' },
         { value: 'EXPIRED', label: 'Expired' },
+        { value: 'NO_SHOW', label: 'No Show' },
       ],
       value: status,
     },

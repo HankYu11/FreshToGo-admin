@@ -18,6 +18,10 @@ interface FiltersProps {
   dateFrom?: string;
   dateTo?: string;
   onDateRangeChange?: (from: string, to: string) => void;
+  showSingleDate?: boolean;
+  singleDateLabel?: string;
+  singleDateValue?: string;
+  onSingleDateChange?: (value: string) => void;
 }
 
 export default function Filters({
@@ -30,6 +34,10 @@ export default function Filters({
   dateFrom = '',
   dateTo = '',
   onDateRangeChange,
+  showSingleDate,
+  singleDateLabel = 'Date',
+  singleDateValue = '',
+  onSingleDateChange,
 }: FiltersProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +92,16 @@ export default function Filters({
             type="date"
             value={dateTo}
             onChange={(e) => onDateRangeChange?.(dateFrom, e.target.value)}
+          />
+        </div>
+      )}
+      {showSingleDate && (
+        <div className={styles.dateRange}>
+          <label>{singleDateLabel}</label>
+          <input
+            type="date"
+            value={singleDateValue}
+            onChange={(e) => onSingleDateChange?.(e.target.value)}
           />
         </div>
       )}

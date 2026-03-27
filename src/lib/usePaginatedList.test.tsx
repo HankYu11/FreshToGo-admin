@@ -14,7 +14,7 @@ vi.mock('sonner', () => ({
 const mockGet = vi.mocked(api.get);
 
 function makePage<T>(content: T[], totalPages = 1) {
-  return { data: { content, totalElements: content.length, totalPages, number: 0, size: 20 } };
+  return { data: { items: content, totalItems: content.length, totalPages, page: 0, size: 20 } };
 }
 
 beforeEach(() => {

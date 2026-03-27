@@ -10,14 +10,14 @@ import PageHeader from '../../components/PageHeader';
 import { VERIFIED_COLORS } from '../../constants/statusColors';
 
 const columns: Column<Merchant>[] = [
-  { key: 'name', header: 'Store Name' },
+  { key: 'storeName', header: 'Store Name' },
   { key: 'email', header: 'Email' },
   {
-    key: 'verified',
+    key: 'isVerified',
     header: 'Verified',
     render: (row) => (
       <StatusBadge
-        status={row.verified ? 'Yes' : 'No'}
+        status={row.isVerified ? 'Yes' : 'No'}
         colorMap={VERIFIED_COLORS}
       />
     ),
@@ -36,7 +36,7 @@ export default function MerchantList() {
 
   const { data, loading, page, totalPages, setPage } = usePaginatedList<Merchant>(
     '/api/admin/merchants',
-    { search: search || undefined, verified: verified || undefined },
+    { search: search || undefined, isVerified: verified || undefined },
     { errorMessage: 'Failed to load merchants' },
   );
 

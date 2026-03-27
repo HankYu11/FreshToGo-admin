@@ -44,7 +44,7 @@ describe('api interceptors', () => {
 
     // Mock axios.post for the refresh call
     const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({
-      data: { accessToken: 'newtoken', refreshToken: 'newrefresh' },
+      data: { data: { accessToken: 'newtoken', refreshToken: 'newrefresh' } },
     });
 
     const { default: api } = await import('./api');
@@ -98,7 +98,7 @@ describe('api interceptors', () => {
     vi.resetModules();
 
     const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({
-      data: { accessToken: 'newtoken' },
+      data: { data: { accessToken: 'newtoken' } },
     });
 
     const { default: api } = await import('./api');

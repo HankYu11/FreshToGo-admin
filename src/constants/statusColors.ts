@@ -1,6 +1,5 @@
 export const RESERVATION_STATUS_COLORS: Record<string, string> = {
-  PENDING: '#d97706',
-  CONFIRMED: '#2563eb',
+  ACTIVE: '#2563eb',
   PICKED_UP: '#16a34a',
   CANCELLED: '#6b7280',
   EXPIRED: '#6b7280',

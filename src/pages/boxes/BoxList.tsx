@@ -12,7 +12,7 @@ import PageHeader from '../../components/PageHeader';
 
 const columns: Column<Box>[] = [
   { key: 'name', header: 'Name' },
-  { key: 'merchantName', header: 'Merchant' },
+  { key: 'merchantStoreName', header: 'Merchant' },
   {
     key: 'price',
     header: 'Price',
@@ -29,7 +29,7 @@ const columns: Column<Box>[] = [
   {
     key: 'quantity',
     header: 'Qty / Remaining',
-    render: (row) => `${row.remaining} / ${row.quantity}`,
+    render: (row) => `${row.remainingCount} / ${row.quantity}`,
   },
   {
     key: 'status',
@@ -47,8 +47,7 @@ export default function BoxList() {
   const navigate = useNavigate();
   const [merchantId, setMerchantId] = useState('');
   const [status, setStatus] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [saleDate, setSaleDate] = useState('');
   const [merchantOptions, setMerchantOptions] = useState<Array<{ value: string; label: string }>>([]);
 
   useEffect(() => {
@@ -59,7 +58,7 @@ export default function BoxList() {
         signal: controller.signal,
       })
       .then(({ data: res }) => {
-        setMerchantOptions(res.content.map((m) => ({ value: m.id, label: m.name })));
+        setMerchantOptions(res.items.map((m) => ({ value: m.id, label: m.storeName })));
       })
       .catch(() => {});
     return () => controller.abort();
@@ -70,8 +69,7 @@ export default function BoxList() {
     {
       merchantId: merchantId || undefined,
       status: status || undefined,
-      from: dateFrom || undefined,
-      to: dateTo || undefined,
+      saleDate: saleDate || undefined,
     },
     { errorMessage: 'Failed to load boxes' },
   );
@@ -108,10 +106,10 @@ export default function BoxList() {
       <Filters
         filters={filters}
         onFilterChange={handleFilterChange}
-        showDateRange
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onDateRangeChange={(from, to) => { setDateFrom(from); setDateTo(to); setPage(0); }}
+        showSingleDate
+        singleDateLabel="Sale Date"
+        singleDateValue={saleDate}
+        onSingleDateChange={(v) => { setSaleDate(v); setPage(0); }}
       />
       <DataTable
         columns={columns}
