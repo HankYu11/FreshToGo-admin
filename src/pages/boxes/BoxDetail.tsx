@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import type { Box, Reservation } from '../../types/api';
+import type { BoxDetail as BoxDetailType, Reservation } from '../../types/api';
 import { useDetail } from '../../lib/useDetail';
-import { usePaginatedList } from '../../lib/usePaginatedList';
 import DataTable from '../../components/DataTable';
 import type { Column } from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
@@ -11,36 +10,29 @@ import { RESERVATION_STATUS_COLORS } from '../../constants/statusColors';
 
 const reservationColumns: Column<Reservation>[] = [
   {
-    key: 'id',
+    key: 'orderId',
     header: 'Order ID',
-    render: (row) => row.id.slice(0, 8),
+    render: (row) => row.orderId,
   },
-  { key: 'userName', header: 'User' },
+  { key: 'userDisplayName', header: 'User' },
   {
     key: 'status',
     header: 'Status',
     render: (row) => <StatusBadge status={row.status} colorMap={RESERVATION_STATUS_COLORS} />,
   },
   {
-    key: 'pickupTime',
+    key: 'pickupDate',
     header: 'Pickup',
-    render: (row) => new Date(row.pickupTime).toLocaleString(),
+    render: (row) => new Date(row.pickupDate).toLocaleDateString(),
   },
 ];
 
 export default function BoxDetail() {
   const navigate = useNavigate();
-  const { data: box, loading: boxLoading, id } = useDetail<Box>(
+  const { data: box, loading: boxLoading } = useDetail<BoxDetailType>(
     '/api/admin/boxes',
     { errorMessage: 'Failed to load box' },
   );
-
-  const { data: reservations, loading: resLoading, page: resPage, totalPages: resTotalPages, setPage: setResPage } =
-    usePaginatedList<Reservation>(
-      `/api/admin/boxes/${id}/reservations`,
-      {},
-      { errorMessage: 'Failed to load reservations' },
-    );
 
   if (boxLoading || !box) {
     return (
@@ -56,7 +48,8 @@ export default function BoxDetail() {
       <PageHeader title={box.name} />
 
       <DetailCard style={{ marginBottom: '2rem' }}>
-        <DetailCard.Field label="Merchant">{box.merchantName}</DetailCard.Field>
+        <DetailCard.Field label="Merchant">{box.merchantStoreName}</DetailCard.Field>
+        <DetailCard.Field label="Merchant Address">{box.merchantStoreAddress || '—'}</DetailCard.Field>
         <DetailCard.Field label="Description">{box.description || '—'}</DetailCard.Field>
         <DetailCard.Field label="Price">
           <span style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>
@@ -65,22 +58,26 @@ export default function BoxDetail() {
           {' → '}
           <strong>${box.discountedPrice.toFixed(2)}</strong>
         </DetailCard.Field>
-        <DetailCard.Field label="Quantity">{box.remaining} remaining of {box.quantity}</DetailCard.Field>
+        <DetailCard.Field label="Quantity">{box.remainingCount} remaining of {box.quantity}</DetailCard.Field>
         <DetailCard.Field label="Status"><StatusBadge status={box.status} /></DetailCard.Field>
         <DetailCard.Field label="Sale Date">{new Date(box.saleDate).toLocaleDateString()}</DetailCard.Field>
-        <DetailCard.Field label="Pickup Window">
-          {new Date(box.pickupStart).toLocaleString()} — {new Date(box.pickupEnd).toLocaleString()}
-        </DetailCard.Field>
+        <DetailCard.Field label="Sale Window">{box.saleTimeStart} — {box.saleTimeEnd}</DetailCard.Field>
+        <DetailCard.Field label="Pickup Window">{box.pickupTimeStart} — {box.pickupTimeEnd}</DetailCard.Field>
+        {box.imageUrl && (
+          <DetailCard.Field label="Image">
+            <img src={box.imageUrl} alt={box.name} style={{ maxWidth: 200, borderRadius: 8 }} />
+          </DetailCard.Field>
+        )}
       </DetailCard>
 
       <h2 style={{ marginBottom: '1rem' }}>Reservations</h2>
       <DataTable
         columns={reservationColumns}
-        data={reservations}
-        loading={resLoading}
-        page={resPage}
-        totalPages={resTotalPages}
-        onPageChange={setResPage}
+        data={box.reservations}
+        loading={false}
+        page={0}
+        totalPages={1}
+        onPageChange={() => {}}
         onRowClick={(row) => navigate(`/reservations/${row.id}`)}
         keyExtractor={(row) => row.id}
       />

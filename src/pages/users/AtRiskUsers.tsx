@@ -1,13 +1,14 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import api from '../../lib/api';
 import type { User } from '../../types/api';
-import { usePaginatedList } from '../../lib/usePaginatedList';
 import DataTable from '../../components/DataTable';
 import type { Column } from '../../components/DataTable';
 import PageHeader from '../../components/PageHeader';
 
 const columns: Column<User>[] = [
-  { key: 'name', header: 'Display Name' },
-  { key: 'email', header: 'Email' },
+  { key: 'displayName', header: 'Display Name' },
   { key: 'noShowCount', header: 'No-Show Count' },
   {
     key: 'createdAt',
@@ -18,12 +19,25 @@ const columns: Column<User>[] = [
 
 export default function AtRiskUsers() {
   const navigate = useNavigate();
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data, loading, page, totalPages, setPage } = usePaginatedList<User>(
-    '/api/admin/users/at-risk',
-    {},
-    { errorMessage: 'Failed to load at-risk users' },
-  );
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .get<User[]>('/api/admin/users/at-risk', { signal: controller.signal })
+      .then(({ data: users }) => {
+        setData(users);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          toast.error('Failed to load at-risk users');
+          setLoading(false);
+        }
+      });
+    return () => controller.abort();
+  }, []);
 
   return (
     <div>
@@ -35,9 +49,9 @@ export default function AtRiskUsers() {
         columns={columns}
         data={data}
         loading={loading}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        page={0}
+        totalPages={1}
+        onPageChange={() => {}}
         onRowClick={(row) => navigate(`/users/${row.id}`)}
         keyExtractor={(row) => row.id}
       />

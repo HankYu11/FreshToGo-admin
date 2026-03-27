@@ -29,7 +29,7 @@ export function usePaginatedList<T>(
         signal: controller.signal,
       })
       .then(({ data: res }) => {
-        setFetchState({ data: res.content, totalPages: res.totalPages, key: fetchKey });
+        setFetchState({ data: res.items, totalPages: res.totalPages, key: fetchKey });
       })
       .catch(() => {
         if (!controller.signal.aborted) {

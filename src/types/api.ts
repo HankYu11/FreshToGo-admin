@@ -1,9 +1,9 @@
 export interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
+  items: T[];
+  page: number;
   size: number;
+  totalItems: number;
+  totalPages: number;
 }
 
 export interface LoginRequest {
@@ -11,18 +11,22 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
-  accessToken: string;
+export interface LoginData {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  token: string;
   refreshToken: string;
 }
 
 export interface DashboardStats {
-  totalMerchants: number;
   totalUsers: number;
-  activeReservations: number;
-  totalBoxes: number;
-  totalRevenue: number;
-  newUsersToday: number;
+  totalMerchants: number;
+  activeMerchants: number;
+  todayReservations: number;
+  todayRevenue: number;
+  noShowRate: number;
 }
 
 export interface TimeseriesPoint {
@@ -32,68 +36,104 @@ export interface TimeseriesPoint {
 
 export interface Merchant {
   id: string;
-  name: string;
   email: string;
-  phone: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  verified: boolean;
+  storeName: string;
+  storeAddress: string;
+  isVerified: boolean;
   createdAt: string;
-  updatedAt: string;
+  boxCount: number;
+  reservationCount: number;
+}
+
+export interface MerchantDetail {
+  id: string;
+  email: string;
+  storeName: string;
+  storeAddress: string;
+  isVerified: boolean;
+  createdAt: string;
+  boxCount: number;
+  activeReservationCount: number;
+  totalReservationCount: number;
 }
 
 export interface MerchantCreateRequest {
-  name: string;
   email: string;
-  phone: string;
-  address: string;
-  latitude: number;
-  longitude: number;
+  password: string;
+  storeName: string;
+  storeAddress: string;
 }
 
 export interface User {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
-  blocked: boolean;
+  displayName: string;
+  pictureUrl: string | null;
   noShowCount: number;
+  isBlocked: boolean;
   createdAt: string;
+  reservationCount: number;
 }
 
-export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'PICKED_UP' | 'CANCELLED' | 'EXPIRED';
+export interface UserDetail {
+  id: string;
+  displayName: string;
+  pictureUrl: string | null;
+  noShowCount: number;
+  isBlocked: boolean;
+  createdAt: string;
+  totalReservations: number;
+  completedPickups: number;
+  cancellations: number;
+  noShows: number;
+}
+
+export type ReservationStatus = 'ACTIVE' | 'PICKED_UP' | 'CANCELLED' | 'EXPIRED' | 'NO_SHOW';
 
 export interface Reservation {
   id: string;
+  orderId: string;
   userId: string;
-  userName: string;
-  merchantId: string;
-  merchantName: string;
+  userDisplayName: string;
   boxId: string;
   boxName: string;
+  merchantId: string;
+  merchantStoreName: string;
   price: number;
   status: ReservationStatus;
-  pickupTime: string;
-  cancelReason?: string;
+  pickupDate: string;
   createdAt: string;
+}
+
+export interface ReservationDetail extends Reservation {
+  isPickedUp: boolean;
+  isCancelled: boolean;
+  noShowProcessedAt: string | null;
+  redemptionCode: string;
 }
 
 export type BoxStatus = 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'EXPIRED';
 
 export interface Box {
   id: string;
-  merchantId: string;
-  merchantName: string;
   name: string;
-  description: string;
+  merchantId: string;
+  merchantStoreName: string;
   originalPrice: number;
   discountedPrice: number;
   quantity: number;
-  remaining: number;
+  remainingCount: number;
   status: BoxStatus;
   saleDate: string;
-  pickupStart: string;
-  pickupEnd: string;
+  saleTimeStart: string;
+  saleTimeEnd: string;
+  pickupTimeStart: string;
+  pickupTimeEnd: string;
   createdAt: string;
+}
+
+export interface BoxDetail extends Box {
+  description: string;
+  merchantStoreAddress: string;
+  imageUrl: string | null;
+  reservations: Reservation[];
 }

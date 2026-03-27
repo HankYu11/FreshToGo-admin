@@ -62,10 +62,10 @@ api.interceptors.response.use(
         `${api.defaults.baseURL}/api/admin/refresh`,
         { refreshToken },
       );
-      const newToken = data.accessToken;
+      const newToken = data.data.accessToken;
       localStorage.setItem('access_token', newToken);
-      if (data.refreshToken) {
-        localStorage.setItem('refresh_token', data.refreshToken);
+      if (data.data.refreshToken) {
+        localStorage.setItem('refresh_token', data.data.refreshToken);
       }
       api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
       processQueue(null, newToken);
@@ -80,5 +80,13 @@ api.interceptors.response.use(
     }
   },
 );
+
+// Unwrap { success, data } envelope so callers receive the inner payload directly
+api.interceptors.response.use((response) => {
+  if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+    response.data = response.data.data;
+  }
+  return response;
+});
 
 export default api;

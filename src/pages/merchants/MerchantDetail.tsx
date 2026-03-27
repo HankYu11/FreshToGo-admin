@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../lib/api';
-import type { Merchant } from '../../types/api';
+import type { MerchantDetail as MerchantDetailType } from '../../types/api';
 import { useDetail } from '../../lib/useDetail';
 import { useConfirmAction } from '../../lib/useConfirmAction';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -15,12 +15,12 @@ import styles from './MerchantDetail.module.css';
 
 export default function MerchantDetail() {
   const navigate = useNavigate();
-  const { data: merchant, setData: setMerchant, loading, id } = useDetail<Merchant>(
+  const { data: merchant, setData: setMerchant, loading, id } = useDetail<MerchantDetailType>(
     '/api/admin/merchants',
     { errorMessage: 'Failed to load merchant' },
   );
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', latitude: '', longitude: '' });
+  const [form, setForm] = useState({ storeName: '', storeAddress: '' });
   const [saving, setSaving] = useState(false);
 
   const deleteAction = useConfirmAction(async () => {
@@ -29,17 +29,12 @@ export default function MerchantDetail() {
     navigate('/merchants');
   }, { errorMessage: 'Failed to delete merchant' });
 
-  // Sync form when merchant loads
   const synced = useRef(false);
   useEffect(() => {
     if (merchant && !synced.current) {
       setForm({
-        name: merchant.name,
-        email: merchant.email,
-        phone: merchant.phone,
-        address: merchant.address,
-        latitude: String(merchant.latitude),
-        longitude: String(merchant.longitude),
+        storeName: merchant.storeName,
+        storeAddress: merchant.storeAddress,
       });
       synced.current = true;
     }
@@ -49,15 +44,7 @@ export default function MerchantDetail() {
     e.preventDefault();
     setSaving(true);
     try {
-      const lat = parseFloat(form.latitude);
-      const lng = parseFloat(form.longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        toast.error('Latitude and longitude must be valid numbers');
-        setSaving(false);
-        return;
-      }
-      const payload = { ...form, latitude: lat, longitude: lng };
-      const { data } = await api.patch<Merchant>(`/api/admin/merchants/${id}`, payload);
+      const { data } = await api.patch<MerchantDetailType>(`/api/admin/merchants/${id}`, form);
       setMerchant(data);
       setEditing(false);
       toast.success('Merchant updated');
@@ -71,11 +58,11 @@ export default function MerchantDetail() {
   const handleVerifyToggle = async () => {
     if (!merchant) return;
     try {
-      const { data } = await api.patch<Merchant>(`/api/admin/merchants/${id}/verify`, {
-        verified: !merchant.verified,
+      const { data } = await api.patch<MerchantDetailType>(`/api/admin/merchants/${id}`, {
+        isVerified: !merchant.isVerified,
       });
       setMerchant(data);
-      toast.success(data.verified ? 'Merchant verified' : 'Merchant unverified');
+      toast.success(data.isVerified ? 'Merchant verified' : 'Merchant unverified');
     } catch {
       toast.error('Failed to update verification status');
     }
@@ -92,9 +79,9 @@ export default function MerchantDetail() {
 
   return (
     <div>
-      <PageHeader title={merchant.name}>
+      <PageHeader title={merchant.storeName}>
         <button className="btn-secondary" onClick={handleVerifyToggle}>
-          {merchant.verified ? 'Unverify' : 'Verify'}
+          {merchant.isVerified ? 'Unverify' : 'Verify'}
         </button>
         {!editing && (
           <button className="btn-primary" onClick={() => setEditing(true)}>
@@ -111,42 +98,12 @@ export default function MerchantDetail() {
           <form onSubmit={handleSave}>
             <label>
               Store Name
-              <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+              <input value={form.storeName} onChange={(e) => setForm((p) => ({ ...p, storeName: e.target.value }))} />
             </label>
             <label>
-              Email
-              <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+              Store Address
+              <input value={form.storeAddress} onChange={(e) => setForm((p) => ({ ...p, storeAddress: e.target.value }))} />
             </label>
-            <label>
-              Phone
-              <input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
-            </label>
-            <label>
-              Address
-              <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
-            </label>
-            <div className={styles.coordRow}>
-              <label>
-                Latitude
-                <input
-                  type="number"
-                  step="any"
-                  required
-                  value={form.latitude}
-                  onChange={(e) => setForm((p) => ({ ...p, latitude: e.target.value }))}
-                />
-              </label>
-              <label>
-                Longitude
-                <input
-                  type="number"
-                  step="any"
-                  required
-                  value={form.longitude}
-                  onChange={(e) => setForm((p) => ({ ...p, longitude: e.target.value }))}
-                />
-              </label>
-            </div>
             <div className={styles.formActions}>
               <button type="submit" className="btn-primary" disabled={saving}>
                 {saving ? 'Saving...' : 'Save'}
@@ -160,16 +117,16 @@ export default function MerchantDetail() {
       ) : (
         <DetailCard>
           <DetailCard.Field label="Email">{merchant.email}</DetailCard.Field>
-          <DetailCard.Field label="Phone">{merchant.phone || '—'}</DetailCard.Field>
-          <DetailCard.Field label="Address">{merchant.address || '—'}</DetailCard.Field>
-          <DetailCard.Field label="Latitude">{merchant.latitude}</DetailCard.Field>
-          <DetailCard.Field label="Longitude">{merchant.longitude}</DetailCard.Field>
+          <DetailCard.Field label="Store Address">{merchant.storeAddress || '—'}</DetailCard.Field>
           <DetailCard.Field label="Verified">
             <StatusBadge
-              status={merchant.verified ? 'Yes' : 'No'}
+              status={merchant.isVerified ? 'Yes' : 'No'}
               colorMap={VERIFIED_COLORS}
             />
           </DetailCard.Field>
+          <DetailCard.Field label="Boxes">{merchant.boxCount}</DetailCard.Field>
+          <DetailCard.Field label="Active Reservations">{merchant.activeReservationCount}</DetailCard.Field>
+          <DetailCard.Field label="Total Reservations">{merchant.totalReservationCount}</DetailCard.Field>
           <DetailCard.Field label="Created">{new Date(merchant.createdAt).toLocaleString()}</DetailCard.Field>
         </DetailCard>
       )}
@@ -177,7 +134,7 @@ export default function MerchantDetail() {
       <ConfirmDialog
         open={deleteAction.open}
         title="Delete Merchant"
-        message={`Are you sure you want to delete "${merchant.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${merchant.storeName}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
         loading={deleteAction.loading}

@@ -40,7 +40,7 @@ describe('AuthProvider', () => {
 
   it('login() posts, stores tokens, sets isAuthenticated', async () => {
     vi.mocked(api.post).mockResolvedValue({
-      data: { accessToken: 'access1', refreshToken: 'refresh1' },
+      data: { token: 'access1', refreshToken: 'refresh1' },
     });
     const { result } = renderAuth();
     await act(() => result.current.login('a@b.com', 'pass'));
@@ -50,13 +50,26 @@ describe('AuthProvider', () => {
     expect(result.current.isAuthenticated).toBe(true);
   });
 
-  it('logout() clears tokens, sets isAuthenticated=false, shows toast', () => {
+  it('logout() calls server, clears tokens, sets isAuthenticated=false, shows toast', async () => {
+    vi.mocked(api.post).mockResolvedValue({ data: { message: 'Logged out successfully' } });
     localStorage.setItem('access_token', 'tok');
     localStorage.setItem('refresh_token', 'ref');
     const { result } = renderAuth();
-    act(() => result.current.logout());
+    await act(async () => result.current.logout());
+    expect(api.post).toHaveBeenCalledWith('/api/admin/logout');
     expect(localStorage.getItem('access_token')).toBeNull();
     expect(localStorage.getItem('refresh_token')).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith('Logged out');
+  });
+
+  it('logout() still clears tokens if server call fails', async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error('network'));
+    localStorage.setItem('access_token', 'tok');
+    localStorage.setItem('refresh_token', 'ref');
+    const { result } = renderAuth();
+    await act(async () => result.current.logout());
+    expect(localStorage.getItem('access_token')).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
     expect(toast.success).toHaveBeenCalledWith('Logged out');
   });

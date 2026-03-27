@@ -59,11 +59,11 @@ export default function Dashboard() {
 
     Promise.all([
       api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
-        params: { metric: 'reservations', from: dateRange.from, to: dateRange.to },
+        params: { metric: 'reservations', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
       api.get<TimeseriesPoint[]>('/api/admin/analytics/timeseries', {
-        params: { metric: 'revenue', from: dateRange.from, to: dateRange.to },
+        params: { metric: 'revenue', dateFrom: dateRange.from, dateTo: dateRange.to },
         signal: controller.signal,
       }),
     ])
@@ -88,10 +88,10 @@ export default function Dashboard() {
       <div className={styles.statsGrid}>
         <StatCard title="Total Users" value={stats?.totalUsers ?? 0} loading={statsLoading} />
         <StatCard title="Total Merchants" value={stats?.totalMerchants ?? 0} loading={statsLoading} />
-        <StatCard title="Active Reservations" value={stats?.activeReservations ?? 0} loading={statsLoading} />
-        <StatCard title="Total Boxes" value={stats?.totalBoxes ?? 0} loading={statsLoading} />
-        <StatCard title="Total Revenue" value={formatCurrency(stats?.totalRevenue ?? 0)} loading={statsLoading} />
-        <StatCard title="New Users Today" value={stats?.newUsersToday ?? 0} loading={statsLoading} />
+        <StatCard title="Active Merchants" value={stats?.activeMerchants ?? 0} loading={statsLoading} />
+        <StatCard title="Today's Reservations" value={stats?.todayReservations ?? 0} loading={statsLoading} />
+        <StatCard title="Today's Revenue" value={formatCurrency(stats?.todayRevenue ?? 0)} loading={statsLoading} />
+        <StatCard title="No-Show Rate" value={`${((stats?.noShowRate ?? 0) * 100).toFixed(1)}%`} loading={statsLoading} />
       </div>
 
       <div className={styles.dateRange}>
